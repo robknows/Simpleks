@@ -68,7 +68,7 @@ readBasicSolution:{[t;I]@[(#*{-1_1_x}'t)#0f;-1+I;:;last'1_t]}
 // pivoted tableau.
 pivot:{[t;p;q]t-t[p]*/:@[t@\:q;p;:;0]}
 
-// Given a tableau t, returns a pivot (p, q) found using standard pivoting
+// Given a tableau t, returns a pivot (p;q) found using standard pivoting
 // rules.
 // - Entering variable: Ensures non-inferiority
 // Pick the non-basic column whose corresponding value in the reduced column
@@ -76,8 +76,17 @@ pivot:{[t;p;q]t-t[p]*/:@[t@\:q;p;:;0]}
 // index. If no beta[i]>0, then the solution cannot improve and is therefore
 // optimal - the algorithm terminates.
 // - Leaving variable: Ensures feasibility
-// Pick the row whose value in the pivot column is minimal.
-selectPivotStd:{[t]}
+// Pick the row whose xBar=RHS%(value in pivot column) quotient is minimal. If
+// the minimal value for xBar is infinity, then the LP is unbounded and the
+// algorithm terminates.
+selectPivotStd:{[t]
+  q:*&zRow=max zRow:t[0];
+  p:1+*&xBar=min xBar:(last'c)%(c:1_t)@\:q;
+  (p;q)}
+
+// Given index set I and pivot pv=(p;q), returns a new index set such that
+// p has been replaced by q.
+reindex:{[I;pv]@[I;&(pv 0)=I;:;pv 1]}
 
 // Example 1:
 A1:2 8#2 -1 3 2 3 2 1 0 3 4 2 2 3 0 0 1f
