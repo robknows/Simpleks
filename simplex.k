@@ -21,14 +21,13 @@ nI:{[I;n]1+&~(1+!n)in I}
 // Given constraints A,b, objective c, and index set I: produces a tableau.
 tableau:{[A;b;c;I]
   B:A@\:bI:-1+I;
-  N:A@\:nI:e@&~:max bI=\:e:!#*A;
+  N:A@\:notI:nI[I;#c];
   cB:c@bI;
-  cN:c@nI;
+  cN:c@notI;
   r:cN-(+N)$(+!B)$cB;
   bs:(!B)$b;
   Z:sum cB*bs;
   nB:#I;
-  nN:#nI;
   zRow:"f"$,/1,(nB#0),(-:r),Z;
   id:"f"$0=(2#nB)#!1+nB;
   cRows:"f"$(nB#0),'id,'((!B)$N),'(!B)$b;
