@@ -66,7 +66,18 @@ readBasicSolution:{[t;I]@[(#*{-1_1_x}'t)#0f;-1+I;:;last'1_t]}
 // Given a tableau t, a p∈ I and a q∉ I, perform a pivot on (p, q) such that
 // xp leaves the basis and xq enters the basis, returning the resulting
 // pivoted tableau.
-pivot:{[t;p;q]t-t[p]*/:@[A2@\:q;p;:;0]}
+pivot:{[t;p;q]t-t[p]*/:@[t@\:q;p;:;0]}
+
+// Given a tableau t, returns a pivot (p, q) found using standard pivoting
+// rules.
+// - Entering variable: Ensures non-inferiority
+// Pick the non-basic column whose corresponding value in the reduced column
+// vector is maximal. If there is a tie, pick the column with the lowest
+// index. If no beta[i]>0, then the solution cannot improve and is therefore
+// optimal - the algorithm terminates.
+// - Leaving variable: Ensures feasibility
+// Pick the row whose value in the pivot column is minimal.
+selectPivotStd:{[t]}
 
 // Example 1:
 A1:2 8#2 -1 3 2 3 2 1 0 3 4 2 2 3 0 0 1f
