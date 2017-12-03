@@ -14,6 +14,10 @@ swap:{tmp:x[y];x[y]:x[z];x[z]:tmp;x}
 // Given a matrix of floats, amends all values sufficiently close to 0 with 0
 fpe:{((#x);(#*x))#@[rx;&abs[rx:,/x]<0.0001;:;0f]}
 
+// Given an index set I and then number of variables n, generates the indices
+// of variables not in I.
+nI:{[I;n]1+&~(1+!n)in I}
+
 // Given constraints A,b, objective c, and index set I: produces a tableau.
 tableau:{[A;b;c;I]
   B:A@\:bI:-1+I;
@@ -91,6 +95,8 @@ reindex:{[I;pv]@[I;&(pv 0)=I;:;pv 1]}
 // For a given tableau t and an index set I, returns a boolean indicating if
 // ∀ i∉ I: β[i]≤0.
 isOptimal:{[t;I]~min 0>=zRow@&~(1+!#-1_1_zRow:t 0)in I}
+
+
 
 // Given an LP specified by constraints A and b, an objective function
 // specified by c and an initial BFS with index set I, performs the one phase
