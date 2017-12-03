@@ -88,6 +88,15 @@ selectPivotStd:{[t]
 // p has been replaced by q.
 reindex:{[I;pv]@[I;&(pv 0)=I;:;pv 1]}
 
+// For a given tableau t and an index set I, returns a boolean indicating if
+// ∀ i∉ I: β[i]≤0.
+isOptimal:{[t;I]~min 0>=zRow@&~(1+!#-1_1_zRow:t 0)in I}
+
+// Given an LP specified by constraints A and b, an objective function
+// specified by c and an initial BFS with index set I, performs the one phase
+// simplex algorithm using standard pivoting rules.
+stdOnePhaseSimplex:{[A;b;c;I]}
+
 // Example 1:
 A1:2 8#2 -1 3 2 3 2 1 0 3 4 2 2 3 0 0 1f
 b1:4 2f
@@ -101,3 +110,6 @@ bfs1:showBFS[A1;b1;I1;bs1]
 // Example 2:
 A2:4 8#1 0 0 0 1 2 1 1 0 1 0 0 1 1 -1 5 0 0 1 0 2 -3 1 3 0 0 0 1 -1 2 -1 -1
 I2:1 2 3
+
+// Example 3:
+A3:4 7#1 1 1 0 0 0 0 0 2 1 1 0 0 11 0 1 3 0 1 0 18 0 1 0 0 0 1 4
