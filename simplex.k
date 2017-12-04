@@ -21,21 +21,14 @@ nI:{[I;n]1+&~(1+!n)in I}
 // Given the tableau, returns the number of variables the LP has.
 nVars:{-2+#*x}
 
-// Given constraints A,b, objective c, and index set I: produces a tableau.
-tableau:{[A;b;c;I]
-  B:A@\:bI:-1+I;
-  N:A@\:notI:nI[I;#c];
-  cB:c@bI;
-  cN:c@notI;
-  r:cN-(+N)$(+!B)$cB;
-  bs:(!B)$b;
-  Z:sum cB*bs;
-  nB:#I;
-  zRow:"f"$,/1,(nB#0),(-:r),Z;
-  id:"f"$0=(2#nB)#!1+nB;
-  cRows:"f"$(nB#0),'id,'((!B)$N),'(!B)$b;
-  allRows:fpe (,zRow),cRows;
-  swap[;1+!#I;I]'allRows}
+// From a tableau get the constraint matrix A
+constraints:{{1_-1_x}'1_x}
+
+// From a tableau get the constraint RHS vector b
+constraintRHS:{1_last'x}
+
+// From a tableau get the objective function coefficients c
+zCoefficients:{-1_1_*x}
 
 // Aligns the whitespace separated columns represented in the lines of TXT,
 // then adds pipe separators between the columns.
@@ -56,23 +49,17 @@ showTableau:{[t;I]
   withLabels:(,colLabels),(rowLabels,\:" "),'" "/:'$t;
   pipeSpace withLabels}
 
-// Given the constraints A, b, the index set I and a candidate vector X,
-// will print some text containing whether X is in fact a solution to the
-// constraints, if it is basic and if it is feasible.
-showBFS:{[A;b;I;X]
-  isSolution:$[b~+/'A*\:X;"";"non-"],"solution";
-  isBasic:$[min 0=X a@&~(a:(!#X)) in -1+I;"";"non-"],"basic";
-  isFeasible:$[(8=#isSolution)&min 0<X;"";"in"],"feasible";
-  isBasic," ",isFeasible," ",isSolution}
+// Prints whether the current solution in the tableau T is feasible.
+isFeasible:{[t]min@~0>1_last't}
 
 // Given a tableau t and index set I, will return the corresponding basic
 // solution.
-readBasicSolution:{[t;I]@[(#*{-1_1_x}'t)#0f;-1+I;:;last'1_t]}
+basicSoln:{[t;I]@[(#*{-1_1_x}'t)#0f;-1+I;:;(last'1_t)%sum'1_t@\:I]}
 
 // Given a tableau t, a p∈ I and a q∉ I, perform a pivot on (p, q) such that
 // xp leaves the basis and xq enters the basis, returning the resulting
 // pivoted tableau.
-pivot:{[t;I;pvt]t-*:'t[pIdx]*/:@[t@\:pvt[1];pIdx:1+&pvt[0]=I;:;0]}
+pivot:{[t;I;pvt]t-*:'t[pIdx]*/:(%:t . pIdx,pvt[1])*@[t@\:pvt[1];pIdx:1+&pvt[0]=I;:;0f]}
 
 // Given a tableau t, returns a pivot (p;q) found using standard pivoting
 // rules.
@@ -92,11 +79,11 @@ stdPivot:{[t;I]
 
 // Given index set I and pivot pv=(p;q), returns a new index set such that
 // p has been replaced by q.
-reindex:{[I;pv]@[I;&(pv 0)=I;:;pv 1]}
+reindex:{[I;pvt]@[I;&pvt[0]=I;:;pvt 1]}
 
 // For a given tableau t and an index set I, returns a boolean indicating if
 // ∀ i∉ I: β[i]≤0.
-isOptimal:{[t;I]min 0~<(*t)@nI[I;nVars t]}
+isOptimal:{[t;I]min@~0<(*t2)@nI[I;nVars t2]}
 
 // For a tableau t and index set I, returns a boolean indicating if, for all
 // non-basic columns, beta>0 and all other coefficients are <= 0.
@@ -104,22 +91,21 @@ isUnbounded:{[t;I]min@min'~0<+nIs:nIs@\:&0<(nIs:t@\:nI[I;nVars t])@0}
 
 // Given a tableau t and an initial BFS with index set I, performs an
 // iteration of the simplex algorithm using standard pivoting rules.
-stdSimplexIter:{[t;I]
-  $[isOptimal[t;I];t;$[isUnbounded[t;I];'unbounded;[pvt:stdPivot[t;I];pivot[t;I;pvt]]]]}
+stdSimplex:{[t;I]
+  // Loop this kind of thing
+  running:~:isOptimal[t;I]|isUnbounded[t;I];
+  pvt:stdPivot[t;I];
+  t:pivot[t;I;pvt];
+  I:reindex[I;pvt];}
 
 // Example 1:
-A1:2 8#2 -1 3 2 3 2 1 0 3 4 2 2 3 0 0 1f
-b1:4 2f
-c1:6 3 4 2 -3 4 0 0f
-I1:4 3
-t1:tableau[A1;b1;c1;I1]
-ta1:showTableau[t1;I1]
-bs1:readBasicSolution[t1;I1]
-bfs1:showBFS[A1;b1;I1;bs1]
+A1:4 8#1 0 0 0 1 2 1 1 0 1 0 0 1 1 -1 5 0 0 1 0 2 -3 1 3 0 0 0 1 -1 2 -1 -1f
+I1:1 2 3
 
 // Example 2:
-A2:4 8#1 0 0 0 1 2 1 1 0 1 0 0 1 1 -1 5 0 0 1 0 2 -3 1 3 0 0 0 1 -1 2 -1 -1
-I2:1 2 3
+A2:4 7#1 1 1 0 0 0 0 0 2 1 1 0 0 11 0 1 3 0 1 0 18 0 1 0 0 0 1 4f
+I2:3 4 5
 
-// Example 3:
-A3:4 7#1 1 1 0 0 0 0 0 2 1 1 0 0 11 0 1 3 0 1 0 18 0 1 0 0 0 1 4
+// Example:
+A:3 6#1 200 400 0 0 0 0 3 2 120 0 120 0 1 1 0 50 50f
+I:3 4
