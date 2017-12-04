@@ -124,7 +124,7 @@ showIter:{[iter]showTableau[iter`t;iter`I],(,showIterBFS iter),,"==="}
 // Given a table produced for an iteration by stdSimplex, formats it and
 // prints it out, giving intermediate values of the objective for the
 // traversed BFSs.
-showIterations:{[iterations]}
+showIterations:{[iterations],/showIter'iterations}
 
 // Example 1:
 A1:3 6#1 200 400 0 0 0 0 3 2 120 0 120 0 1 1 0 50 50f
