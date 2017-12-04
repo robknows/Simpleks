@@ -130,7 +130,8 @@ reasonForTermination:{[iterations]
 // traversed BFSs.
 showIterations:{[iterations](,/showIter'iterations),,reasonForTermination iterations}
 
-
+// A BS is degenerate if any basic variables are zero.
+isDegenerate:{max@0=constraintRHS[x]}
 
 // Example 1:
 A1:3 6#1 200 400 0 0 0 0 3 2 120 0 120 0 1 1 0 50 50f
