@@ -96,20 +96,23 @@ isOptimal:{[t;I]min@~0<(*t)@nI[I;nVars t]}
 isUnbounded:{[t;I]$[isOptimal[t;I];0b;min@min'~0<+nIs:nIs@\:&0<(nIs:t@\:nI[I;nVars t])@0]}
 
 // Given a tableau t and an initial BFS with index set I, performs the simplex
-// algorithm using standard pivoting rules, saving data from every iteration
-// into a table, which it then returns.
-stdSimplex:{[t;I]
+// algorithm using a pivoting rule given choosePivot:{[t;I]...(p;q)}, saving
+// data from every iteration into a table, which it then returns.
+simplex:{[choosePivot;t;I]
   i:1;
   running:1b;
   iterations:+`iter`opt`unb`t`I`BFS!6#();
+  iterations,:`iter`opt`unb`t`I`BFS!(i;isOptimal[t;I];isUnbounded[t;I];t;I;basicSoln[t;I]);
   while[running;
-    iterations,:`iter`opt`unb`t`I`BFS!(i;isOptimal[t;I];isUnbounded[t;I];t;I;basicSoln[t;I]);
-    pvt:stdPivot[t;I];
+    pvt:choosePivot[t;I];
     t:pivot[t;I;pvt];
     I:reindex[I;pvt];
-    i+:1;
-    running:0=+/max'iterations`opt`unb];
+    iterations,:`iter`opt`unb`t`I`BFS!(i;isOptimal[t;I];isUnbounded[t;I];t;I;basicSoln[t;I]);
+    running:0=+/max'iterations`opt`unb;
+    i+:1];
   iterations}
+
+stdSimplex:simplex[stdPivot;;]
 
 // Given a dictionary entry from an iterations table, as produced by
 // stdSimplex, produces a line of text showing the information for
@@ -130,8 +133,22 @@ reasonForTermination:{[iterations]
 // traversed BFSs.
 showIterations:{[iterations](,/showIter'iterations),,reasonForTermination iterations}
 
-// A BS is degenerate if any basic variables are zero.
+// A BS is degenerate if any basic variables are zero. Degenerate BSs
+// have more than one index set corresponding to them.
 isDegenerate:{max@0=constraintRHS[x]}
+
+// ===== Finite Termination Theorum =====
+// If all BFSs are non-degenerate, then the simplex algorithm with
+// standard pivoting rules must terminate after a finite number of
+// steps with either an optimal solution or proof that the problem
+// is unbounded.
+
+blandsPivot:{[t;I]
+  q:1+*&0<1_t[0];
+  p:I@*&xBar=min xBar@&0<xBar:(last'c)%(c:1_t)@\:q;
+  (p;q)}
+
+blandsSimplex:simplex[blandsPivot;;]
 
 // Example 1:
 A1:3 6#1 200 400 0 0 0 0 3 2 120 0 120 0 1 1 0 50 50f
