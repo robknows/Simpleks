@@ -98,7 +98,9 @@ reindex:{[I;pv]@[I;&(pv 0)=I;:;pv 1]}
 // ∀ i∉ I: β[i]≤0.
 isOptimal:{[t;I]min 0~<(*t)@nI[I;nVars t]}
 
-
+// For a tableau t and index set I, returns a boolean indicating if, for all
+// non-basic columns, beta>0 and all other coefficients are <= 0.
+isUnbounded:{[t;I]min@min'~0<+nIs:nIs@\:&0<(nIs:t@\:nI[I;nVars t])@0}
 
 // Given an LP specified by constraints A and b, an objective function
 // specified by c and an initial BFS with index set I, performs the one phase
