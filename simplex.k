@@ -44,7 +44,7 @@ pipeSpace:{[txt]
 // Given a simplex tableau t with index set I, adds column/row labels and
 // prints it nicely.
 showTableau:{[t;I]
-  colLabels:" "/:("BV";,"Z"),("x",/:$1+!-2+#*t),(,"RHS");
+  colLabels:" "/:("BV";,"Z"),("x",/:$1+!nVars t),(,"RHS");
   rowLabels:"Z","x",/:$I;
   withLabels:(,colLabels),(rowLabels,\:" "),'" "/:'$t;
   pipeSpace withLabels}
@@ -55,6 +55,9 @@ isFeasible:{[t]min@~0>1_last't}
 // Given a tableau t and index set I, will return the corresponding basic
 // solution.
 basicSoln:{[t;I]@[(#*{-1_1_x}'t)#0f;-1+I;:;(last'1_t)%sum'1_t@\:I]}
+
+// Gives the objective value for the current tableau T.
+objective:{[t]last@*t}
 
 // Given a tableau t, a p∈ I and a q∉ I, perform a pivot on (p, q) such that
 // xp leaves the basis and xq enters the basis, returning the resulting
@@ -87,16 +90,20 @@ isOptimal:{[t;I]min@~0<(*t)@nI[I;nVars t]}
 
 // For a tableau t and index set I, returns a boolean indicating if, for all
 // non-basic columns, beta>0 and all other coefficients are <= 0.
+// Note, that at optimality, all reduced cost vector entries will be zero,
+// so no candidate columns will be found, and so the function would return ().
+// I prevent this with the $.
 isUnbounded:{[t;I]$[isOptimal[t;I];0b;min@min'~0<+nIs:nIs@\:&0<(nIs:t@\:nI[I;nVars t])@0]}
 
-// Given a tableau t and an initial BFS with index set I, performs an
-// iteration of the simplex algorithm using standard pivoting rules.
+// Given a tableau t and an initial BFS with index set I, performs the simplex
+// algorithm using standard pivoting rules, saving data from every iteration
+// into a table, which it then returns.
 stdSimplex:{[t;I]
   i:1;
   running:1b;
-  iterations:+`iter`opt`unb`t`I!5#();
+  iterations:+`iter`opt`unb`t`I`BFS!6#();
   while[running;
-    iterations,:`iter`opt`unb`t`I!(i;isOptimal[t;I];isUnbounded[t;I];t;I);
+    iterations,:`iter`opt`unb`t`I`BFS!(i;isOptimal[t;I];isUnbounded[t;I];t;I;basicSoln[t;I]);
     pvt:stdPivot[t;I];
     t:pivot[t;I;pvt];
     I:reindex[I;pvt];
@@ -104,14 +111,25 @@ stdSimplex:{[t;I]
     running:0=+/max'iterations`opt`unb];
   iterations}
 
+// Given a dictionary entry from an iterations table, as produced by
+// stdSimplex, produces a line of text showing the information for
+// the BFS at that vertex on the hull of the feasible region.
+showIterBFS:{[iter]"BFS = [",(-1_,/($:iter`BFS),\:","),"], with Z = ",$:objective iter`t};
+
+// Given a dictionary entry from an iterations table, as produced by
+// stdSimplex, produces an entire formatted block of text for the
+// tableau writeup of the solution.
+showIter:{[iter]showTableau[iter`t;iter`I],(,showIterBFS iter),,"==="}
+
+// Given a table produced for an iteration by stdSimplex, formats it and
+// prints it out, giving intermediate values of the objective for the
+// traversed BFSs.
+showIterations:{[iterations]}
+
 // Example 1:
-A1:4 8#1 0 0 0 1 2 1 1 0 1 0 0 1 1 -1 5 0 0 1 0 2 -3 1 3 0 0 0 1 -1 2 -1 -1f
-I1:1 2 3
+A1:3 6#1 200 400 0 0 0 0 3 2 120 0 120 0 1 1 0 50 50f
+I1:3 4
 
 // Example 2:
 A2:4 7#1 1 1 0 0 0 0 0 2 1 1 0 0 11 0 1 3 0 1 0 18 0 1 0 0 0 1 4f
 I2:3 4 5
-
-// Example:
-A:3 6#1 200 400 0 0 0 0 3 2 120 0 120 0 1 1 0 50 50f
-I:3 4
