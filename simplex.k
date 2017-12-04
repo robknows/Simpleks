@@ -74,7 +74,7 @@ pivot:{[t;I;pvt]t-*:'t[pIdx]*/:(%:t . pIdx,pvt[1])*@[t@\:pvt[1];pIdx:1+&pvt[0]=I
 // algorithm terminates.
 stdPivot:{[t;I]
   q:1+*&zRow=max zRow:1_t[0];
-  p:I@*&xBar=min xBar:(last'c)%(c:1_t)@\:q;
+  p:I@*&xBar=min xBar@&0<xBar:(last'c)%(c:1_t)@\:q;
   (p;q)}
 
 // Given index set I and pivot pv=(p;q), returns a new index set such that
