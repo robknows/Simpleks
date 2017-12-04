@@ -114,17 +114,23 @@ stdSimplex:{[t;I]
 // Given a dictionary entry from an iterations table, as produced by
 // stdSimplex, produces a line of text showing the information for
 // the BFS at that vertex on the hull of the feasible region.
-showIterBFS:{[iter]"BFS = [",(-1_,/($:iter`BFS),\:","),"], with Z = ",$:objective iter`t};
+showIterBFS:{[iter]
+  "BFS = [",(-1_,/($:iter`BFS),\:","),"], with Z = ",$:objective iter`t};
 
 // Given a dictionary entry from an iterations table, as produced by
 // stdSimplex, produces an entire formatted block of text for the
 // tableau writeup of the solution.
 showIter:{[iter]showTableau[iter`t;iter`I],(,showIterBFS iter),,"==="}
 
+reasonForTermination:{[iterations]
+  ("Optimiality reached";"Problem is unbounded")@*&last[iterations]`opt`unb}
+
 // Given a table produced for an iteration by stdSimplex, formats it and
 // prints it out, giving intermediate values of the objective for the
 // traversed BFSs.
-showIterations:{[iterations],/showIter'iterations}
+showIterations:{[iterations](,/showIter'iterations),,reasonForTermination iterations}
+
+
 
 // Example 1:
 A1:3 6#1 200 400 0 0 0 0 3 2 120 0 120 0 1 1 0 50 50f
