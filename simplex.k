@@ -87,10 +87,23 @@ isOptimal:{[t;I]min@~0<(*t)@nI[I;nVars t]}
 
 // For a tableau t and index set I, returns a boolean indicating if, for all
 // non-basic columns, beta>0 and all other coefficients are <= 0.
-isUnbounded:{[t;I]min@min'~0<+nIs:nIs@\:&0<(nIs:t@\:nI[I;nVars t])@0}
+isUnbounded:{[t;I]$[isOptimal[t;I];0b;min@min'~0<+nIs:nIs@\:&0<(nIs:t@\:nI[I;nVars t])@0]}
 
 // Given a tableau t and an initial BFS with index set I, performs an
 // iteration of the simplex algorithm using standard pivoting rules.
+stdSimplexIter:{[t;I]
+  i:1;
+  running:1b;
+  iterations:+`iter`opt`unb`t`I!5#();
+  while[running;
+    iterations,:`iter`opt`unb`t`I!(i;isOptimal[t;I];isUnbounded[t;I];t;I);
+    pvt:stdPivot[t;I];
+    t:pivot[t;I;pvt];
+    I:reindex[I;pvt];
+    i+:1;
+    running:0=+/max'iterations`opt`unb];
+  iterations}
+
 stdSimplex:{[t;I]  
   running:~:isOptimal[t;I]|isUnbounded[t;I];
   pvt:stdPivot[t;I];
