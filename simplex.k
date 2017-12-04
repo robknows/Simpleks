@@ -59,7 +59,7 @@ basicSoln:{[t;I]@[(#*{-1_1_x}'t)#0f;-1+I;:;(last'1_t)%sum'1_t@\:I]}
 // Given a tableau t, a p∈ I and a q∉ I, perform a pivot on (p, q) such that
 // xp leaves the basis and xq enters the basis, returning the resulting
 // pivoted tableau.
-pivot:{[t;I;pvt]t-*:'t[pIdx]*/:(%:t . pIdx,pvt[1])*@[t@\:pvt[1];pIdx:1+&pvt[0]=I;:;0f]}
+pivot:{[t;I;pvt]t-*:'t[pIdx]*/:(%:t . pIdx,q)*@[t@\:q:pvt[1];pIdx:1+&pvt[0]=I;:;0f]}
 
 // Given a tableau t, returns a pivot (p;q) found using standard pivoting
 // rules.
@@ -83,7 +83,7 @@ reindex:{[I;pvt]@[I;&pvt[0]=I;:;pvt 1]}
 
 // For a given tableau t and an index set I, returns a boolean indicating if
 // ∀ i∉ I: β[i]≤0.
-isOptimal:{[t;I]min@~0<(*t2)@nI[I;nVars t2]}
+isOptimal:{[t;I]min@~0<(*t)@nI[I;nVars t]}
 
 // For a tableau t and index set I, returns a boolean indicating if, for all
 // non-basic columns, beta>0 and all other coefficients are <= 0.
@@ -91,12 +91,12 @@ isUnbounded:{[t;I]min@min'~0<+nIs:nIs@\:&0<(nIs:t@\:nI[I;nVars t])@0}
 
 // Given a tableau t and an initial BFS with index set I, performs an
 // iteration of the simplex algorithm using standard pivoting rules.
-stdSimplex:{[t;I]
-  // Loop this kind of thing
+stdSimplex:{[t;I]  
   running:~:isOptimal[t;I]|isUnbounded[t;I];
   pvt:stdPivot[t;I];
   t:pivot[t;I;pvt];
-  I:reindex[I;pvt];}
+  I:reindex[I;pvt];
+  }
 
 // Example 1:
 A1:4 8#1 0 0 0 1 2 1 1 0 1 0 0 1 1 -1 5 0 0 1 0 2 -3 1 3 0 0 0 1 -1 2 -1 -1f
