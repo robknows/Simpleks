@@ -72,7 +72,7 @@ readBasicSolution:{[t;I]@[(#*{-1_1_x}'t)#0f;-1+I;:;last'1_t]}
 // Given a tableau t, a p∈ I and a q∉ I, perform a pivot on (p, q) such that
 // xp leaves the basis and xq enters the basis, returning the resulting
 // pivoted tableau.
-pivot:{[t;p;q]t-t[p]*/:@[t@\:q;p;:;0]}
+pivot:{[t;I;pvt]t-*:'t[pIdx]*/:@[t@\:pvt[1];pIdx:1+&pvt[0]=I;:;0]}
 
 // Given a tableau t, returns a pivot (p;q) found using standard pivoting
 // rules.
@@ -85,9 +85,9 @@ pivot:{[t;p;q]t-t[p]*/:@[t@\:q;p;:;0]}
 // Pick the row whose xBar=RHS%(value in pivot column) quotient is minimal. If
 // the minimal value for xBar is infinity, then the LP is unbounded and the
 // algorithm terminates.
-selectPivotStd:{[t]
-  q:*&zRow=max zRow:t[0];
-  p:1+*&xBar=min xBar:(last'c)%(c:1_t)@\:q;
+stdPivot:{[t;I]
+  q:1+*&zRow=max zRow:1_t[0];
+  p:I@*&xBar=min xBar:(last'c)%(c:1_t)@\:q;
   (p;q)}
 
 // Given index set I and pivot pv=(p;q), returns a new index set such that
@@ -102,10 +102,10 @@ isOptimal:{[t;I]min 0~<(*t)@nI[I;nVars t]}
 // non-basic columns, beta>0 and all other coefficients are <= 0.
 isUnbounded:{[t;I]min@min'~0<+nIs:nIs@\:&0<(nIs:t@\:nI[I;nVars t])@0}
 
-// Given an LP specified by constraints A and b, an objective function
-// specified by c and an initial BFS with index set I, performs the one phase
-// simplex algorithm using standard pivoting rules.
-stdOnePhaseSimplex:{[A;b;c;I]}
+// Given a tableau t and an initial BFS with index set I, performs an
+// iteration of the simplex algorithm using standard pivoting rules.
+stdSimplexIter:{[t;I]
+  $[isOptimal[t;I];t;$[isUnbounded[t;I];'unbounded;[pvt:stdPivot[t;I];pivot[t;I;pvt]]]]}
 
 // Example 1:
 A1:2 8#2 -1 3 2 3 2 1 0 3 4 2 2 3 0 0 1f
