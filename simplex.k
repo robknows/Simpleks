@@ -91,7 +91,7 @@ isUnbounded:{[t;I]$[isOptimal[t;I];0b;min@min'~0<+nIs:nIs@\:&0<(nIs:t@\:nI[I;nVa
 
 // Given a tableau t and an initial BFS with index set I, performs an
 // iteration of the simplex algorithm using standard pivoting rules.
-stdSimplexIter:{[t;I]
+stdSimplex:{[t;I]
   i:1;
   running:1b;
   iterations:+`iter`opt`unb`t`I!5#();
@@ -103,13 +103,6 @@ stdSimplexIter:{[t;I]
     i+:1;
     running:0=+/max'iterations`opt`unb];
   iterations}
-
-stdSimplex:{[t;I]  
-  running:~:isOptimal[t;I]|isUnbounded[t;I];
-  pvt:stdPivot[t;I];
-  t:pivot[t;I;pvt];
-  I:reindex[I;pvt];
-  }
 
 // Example 1:
 A1:4 8#1 0 0 0 1 2 1 1 0 1 0 0 1 1 -1 5 0 0 1 0 2 -3 1 3 0 0 0 1 -1 2 -1 -1f
