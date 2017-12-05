@@ -150,8 +150,6 @@ blandsPivot:{[t;I]
 
 blandsSimplex:simplex[blandsPivot;;]
 
-
-
 // Example 1: short
 A1:3 6#1 200 400 0 0 0 0 3 2 120 0 120 0 1 1 0 50 50f
 I1:3 4
