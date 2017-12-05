@@ -32,8 +32,6 @@ unbounded.
 
 ## Next up - Annotated integer programming methods
 
-- Cutting planes
-
 - Gomory cuts
 
 - Knapsack cover cuts
