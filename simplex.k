@@ -76,7 +76,7 @@ pivot:{[t;I;pvt]t-*:'t[pIdx]*/:(%:t . pIdx,q)*@[t@\:q:pvt[1];pIdx:1+&pvt[0]=I;:;
 // the minimal value for xBar is infinity, then the LP is unbounded and the
 // algorithm terminates.
 stdPivot:{[t;I]
-  q:1+*&zRow=max zRow:1_t[0];
+  q:1+*&zRow=max zRow:-1_1_t[0];
   p:I@*&xBar=min xBar@&0<xBar:(last'c)%(c:1_t)@\:q;
   (p;q)}
 
@@ -144,16 +144,22 @@ isDegenerate:{max@0=constraintRHS[x]}
 // is unbounded.
 
 blandsPivot:{[t;I]
-  q:1+*&0<1_t[0];
+  q:1+*&0<-1_1_t[0];
   p:I@*&xBar=min xBar@&0<xBar:(last'c)%(c:1_t)@\:q;
   (p;q)}
 
 blandsSimplex:simplex[blandsPivot;;]
 
-// Example 1:
+
+
+// Example 1: short
 A1:3 6#1 200 400 0 0 0 0 3 2 120 0 120 0 1 1 0 50 50f
 I1:3 4
 
-// Example 2:
+// Example 2: longer
 A2:4 7#1 1 1 0 0 0 0 0 2 1 1 0 0 11 0 1 3 0 1 0 18 0 1 0 0 0 1 4f
 I2:3 4 5
+
+// Example 3: artificial
+A3:4 9#1 3 0 1 -1 0 0 0 12 0 1 1 1 0 0 1 0 10 0 2 -1 0 -1 0 0 1 2 0 1 -2 1 0 1 0 0 6f
+I3:6 7 5
