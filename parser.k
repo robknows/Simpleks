@@ -120,3 +120,7 @@ parseLP:{
   constraintLines:(-1)_2_x;
   constraints:parseConstraint[n;;]'[constraintLines;r];
   (,Z),constraints}
+
+// Given an initial simplex tableau as produced by parseLP, finds and
+// returns the initial index set.
+getInitialIndexSet:{1+&1=#:'&:'"b"$1_+x}
