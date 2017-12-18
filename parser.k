@@ -30,10 +30,10 @@
 // xi >= 0 for all 1<=i<=5.
 
 // As an initial tableau:
-// 3 2 0 0 0 0
-// 2 1 1 0 0 18
-// 2 3 0 1 0 42
-// 3 1 0 0 1 24
+// 1 3 2 0 0 0 0
+// 0 2 1 1 0 0 18
+// 0 2 3 0 1 0 42
+// 0 3 1 0 0 1 24
 
 // Method:
 // Parsing:
@@ -90,7 +90,7 @@ furniture:([] item:`table`chair;price:3 2f;hoursRequired:3 1f;woodRequired:2 1f;
 furnitureLP:("max P = 3x1 + 2x2";"s.t";"2x1 + x2 <= 18";"2x1 + 3x2 <= 42";"3x1 + x2 <= 24";"xi >= 0 for all 1<=i<=2")
 
 // Given LP, returns upper bound number of variables
-nLPVars:{-3+(#x)+"J"$last("="\:last x)}
+nLPVars:{-3+(#x)+"I"$last("="\:last x)}
 
 // Given an Fx, returns a 1 list, followed by a (possibly empy) list of
 // 2-lists of (LinOp;Term). Casts the first element of each list as a float
@@ -103,10 +103,18 @@ parseFx:{{@[x;-1+y 1;:;1f^(y 0)]}/[x#0f;linOpTermPairs y]}
 
 // Given nVars X and an objective line Y, produces the objective row of the
 // initial tableau.
-parseObjective:{1f,(1-2*"max"~(" "\:y))*parseFx[x;" "/:3_(" "\:y)]}
+parseObjective:{1f,(1-2*"max"~(" "\:y))*parseFx[x;" "/:3_(" "\:y)],0f}
 
 // Given nVars X, a constraint line Y and the next available slack variable
 // index Z, produces a constraint row of the initial tableau.
 parseConstraint:{
   r:0f,parseFx[x;" "/:-2_ws],"F"$last ws:" "\:y;
   @[r;z;:;"f"$*:-1+&">=<"=**-2#ws]}
+
+parseLP:{
+  n:nLPVars x;
+  r:("I"$last ("="\:last[x]))_1+!n;
+  Z:parseObjective[n;x 0];
+  constraintLines:(-1)_2_x;
+  constraints:parseConstraint[n;;]'[constraintLines;r];
+  (,Z),constraints}
