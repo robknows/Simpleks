@@ -73,9 +73,8 @@
 // return (1,c*parsedFx)
 
 // Parsing a constraint: Returns a row of the tableau
-// split by spaces
-// dropping the last two words, parse the remainder as an Fx
-// return (0,parsedFx,lastWord)
+// split by spaces, dropping the last two words.
+// Parse the remainder as an Fx return (0,parsedFx,lastWord)
 
 // Parsing an entire LP: Returns a simplex-able tableau
 // Split the last line by "=". Take the last word and parse it as an int.
@@ -88,7 +87,7 @@
 
 furniture:([] item:`table`chair;price:3 2f;hoursRequired:3 1f;woodRequired:2 1f;varnishRequired:2 3f)
 
-furnitureLP:("max P = 3x1 + 2x2";"s.t";"2x1 + x2  <= 18";"2x1 + 3x2 <= 42";"3x1 + x2  <= 24";"xi >= 0 for all 1<=i<=2")
+furnitureLP:("max P = 3x1 + 2x2";"s.t";"2x1 + x2 <= 18";"2x1 + 3x2 <= 42";"3x1 + x2 <= 24";"xi >= 0 for all 1<=i<=2")
 
 // Given LP, returns upper bound number of variables
 nLPVars:{-3+(#x)+"J"$last("="\:last x)}
@@ -102,4 +101,12 @@ linOpTermPairs:{{"FI"$'x}'"x"\:',/'|:|:'.q.cut[2;|:(" "\:x)]}
 // for variables numbered by the value given as X
 parseFx:{{@[x;-1+y 1;:;1f^(y 0)]}/[x#0f;linOpTermPairs y]}
 
+// Given nVars X and an objective line Y, produces the objective row of the
+// initial tableau.
 parseObjective:{1f,(1-2*"max"~(" "\:y))*parseFx[x;" "/:3_(" "\:y)]}
+
+// Given nVars X, a constraint line Y and the next available slack variable
+// index Z, produces a constraint row of the initial tableau.
+parseConstraint:{
+  r:0f,parseFx[x;" "/:-2_ws],"F"$last ws:" "\:y;
+  @[r;z;:;"f"$*:-1+&">=<"=**-2#ws]}
