@@ -62,7 +62,8 @@ objective:{[t]last@*t}
 // Given a tableau t, a p∈ I and a q∉ I, perform a pivot on (p, q) such that
 // xp leaves the basis and xq enters the basis, returning the resulting
 // pivoted tableau.
-pivot:{[t;I;pvt]t-*:'t[pIdx]*/:(%:t . pIdx,q)*@[t@\:q:pvt[1];pIdx:1+&pvt[0]=I;:;0f]}
+pivot:{[t;I;pvt]
+  t-*:'t[pIdx]*/:(%:t . pIdx,q)*@[t@\:q:pvt[1];pIdx:1+&pvt[0]=I;:;0f]}
 
 // Given a tableau t, returns a pivot (p;q) found using standard pivoting
 // rules.
@@ -72,9 +73,9 @@ pivot:{[t;I;pvt]t-*:'t[pIdx]*/:(%:t . pIdx,q)*@[t@\:q:pvt[1];pIdx:1+&pvt[0]=I;:;
 // index. If no beta[i]>0, then the solution cannot improve and is therefore
 // optimal - the algorithm terminates.
 // - Leaving variable: Ensures feasibility
-// Pick the row whose xBar=RHS%(value in pivot column) quotient is minimal. If
-// the minimal value for xBar is infinity, then the LP is unbounded and the
-// algorithm terminates.
+// Pick the row whose xBar=RHS%(value in pivot column) quotient is minimal.
+// If the minimal value for xBar is infinity, then the LP is unbounded and
+// the algorithm terminates.
 stdPivot:{[t;I]
   q:1+*&zRow=max zRow:-1_1_t[0];
   p:I@*&xBar=min xBar@&0<xBar:(last'c)%(c:1_t)@\:q;
@@ -91,9 +92,10 @@ isOptimal:{[t;I]min@~0<(*t)@nI[I;nVars t]}
 // For a tableau t and index set I, returns a boolean indicating if, for all
 // non-basic columns, beta>0 and all other coefficients are <= 0.
 // Note, that at optimality, all reduced cost vector entries will be zero,
-// so no candidate columns will be found, and so the function would return ().
-// I prevent this with the $.
-isUnbounded:{[t;I]$[isOptimal[t;I];0b;min@min'~0<+nIs:nIs@\:&0<(nIs:t@\:nI[I;nVars t])@0]}
+// so no candidate columns will be found, and so the function would return
+// (). I prevent this with the $.
+isUnbounded:{[t;I]
+  $[isOptimal[t;I];0b;min@min'~0<+nIs:nIs@\:&0<(nIs:t@\:nI[I;nVars t])@0]}
 
 // Given a tableau t and an initial BFS with index set I, performs the simplex
 // algorithm using a pivoting rule given choosePivot:{[t;I]...(p;q)}, saving
@@ -131,7 +133,8 @@ reasonForTermination:{[iterations]
 // Given a table produced for an iteration by stdSimplex, formats it and
 // prints it out, giving intermediate values of the objective for the
 // traversed BFSs.
-showIterations:{[iterations](,/showIter'iterations),,reasonForTermination iterations}
+showIterations:{[iterations]
+  (,/showIter'iterations),,reasonForTermination iterations}
 
 // A BS is degenerate if any basic variables are zero. Degenerate BSs
 // have more than one index set corresponding to them.
@@ -143,12 +146,23 @@ isDegenerate:{max@0=constraintRHS[x]}
 // steps with either an optimal solution or proof that the problem
 // is unbounded.
 
+// Finds the pivot using Bland's rule.
+// The entering variable is chosen as the minimum index non-basic variable
+// with a positive cost.
+// The leaving variable is chosen in the same way as for standard pivoting
+// rules.
 blandsPivot:{[t;I]
   q:1+*&0<-1_1_t[0];
   p:I@*&xBar=min xBar@&0<xBar:(last'c)%(c:1_t)@\:q;
   (p;q)}
 
 blandsSimplex:simplex[blandsPivot;;]
+
+// Given a simplex tableau optimalT at the point of optimality for an LP,
+// computes the shadow prices vector for the optimal basis. Note that
+// there can be more than one optimal basis, so the shadow prices aren't
+// necessarily distinct.
+shadowPrices:{[optimalT](-1)_1_optimalT 0}
 
 // Example 1: short
 A1:3 6#1 200 400 0 0 0 0 3 2 120 0 120 0 1 1 0 50 50f
