@@ -122,5 +122,10 @@ parseLP:{
   (,Z),constraints}
 
 // Given an initial simplex tableau as produced by parseLP, finds and
-// returns the initial index set.
-getInitialIndexSet:{1+&1=#:'&:'"b"$1_+x}
+// returns an initial index set, if one exists. If it doesn't, it throws
+// 'bfs to signal that this is not a basic feasible solution.
+getInitialIndexSet:{
+  idxs:idxs@&1=sum'(1_x)@\:idxs:1+&1=#:'&:'"b"$1_+x;
+  nBasicVariables:-1+#x;
+  if[nBasicVariables>#idxs;'bfs];
+  nBasicVariables#idxs}
