@@ -18,7 +18,7 @@
 // 2x1 + x2  <= 18
 // 2x1 + 3x2 <= 42
 // 3x1 + x2  <= 24
-// xi >= 0 for all 1<=i<=2.
+// xi >= 0 for all 1<=i<=2
 
 // In standard form:
 // Let Z = -P => P* = -Z*
@@ -27,7 +27,7 @@
 // 2x1 + x2  + x3 = 18
 // 2x1 + 3x2 + x4 = 42
 // 3x1 + x2  + x5 = 24
-// xi >= 0 for all 1<=i<=5.
+// xi >= 0 for all 1<=i<=5
 
 // As an initial tableau:
 // 1 3 2 0 0 0 0
@@ -85,8 +85,8 @@
 // Parse subsequent rows up to but not including the last as constraint rows
 // Concatenate and return.
 
-furniture:([] item:`table`chair;price:3 2f;hoursRequired:3 1f;woodRequired:2 1f;varnishRequired:2 3f)
-
+furnitureCoefficients:([] item:`table`chair;price:3 2f;hours:3 1f;wood:2 1f;varnish:2 3f)
+furnitureAvailability:`hours`wood`varnish!24 18 42f
 furnitureLP:("max P = 3x1 + 2x2";"s.t";"2x1 + x2 <= 18";"2x1 + 3x2 <= 42";"3x1 + x2 <= 24";"xi >= 0 for all 1<=i<=2")
 
 // Given LP, returns upper bound number of variables
@@ -111,6 +111,8 @@ parseConstraint:{
   r:0f,parseFx[x;" "/:-2_ws],"F"$last ws:" "\:y;
   @[r;z;:;"f"$*:-1+&">=<"=**-2#ws]}
 
+// Given a list of strings representing an LP formulation, creates an
+// initial simplex tableau, including slack variables.
 parseLP:{
   n:nLPVars x;
   r:("I"$last ("="\:last[x]))_1+!n;
