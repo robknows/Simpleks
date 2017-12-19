@@ -89,39 +89,84 @@ furnitureCoefficients:([] item:`table`chair;price:3 2f;hours:3 1f;wood:2 1f;varn
 furnitureAvailability:`hours`wood`varnish!24 18 42f
 furnitureLP:("max P = 3x1 + 2x2";"s.t";"2x1 + x2 <= 18";"2x1 + 3x2 <= 42";"3x1 + x2 <= 24";"xi >= 0 for all 1<=i<=2")
 
-// Given LP, returns upper bound number of variables
+// Given an LP X, returns upper bound number of variables.
 nLPVars:{-3+(#x)+"I"$last("="\:last x)}
 
-// Given an Fx, returns a 1 list, followed by a (possibly empy) list of
-// 2-lists of (LinOp;Term). Casts the first element of each list as a float
-// and the second as an int
+// Given an Fx X, returns a list containing a 1 list, followed by a (possibly
+// empty) list of 2-lists of (LinOp;Term). Casts the first element of each
+// list as a float and the second as an int.
 linOpTermPairs:{{"FI"$'x}'"x"\:',/'|:|:'.q.cut[2;|:(" "\:x)]}
 
-// Given a string Y representing an Fx, parses it into a list of coefficients
-// for variables numbered by the value given as X
+// Given nVars X and a string Y representing an Fx, parses it into a list of
+// coefficients for variables numbered by the value given as X
 parseFx:{{@[x;-1+y 1;:;1f^(y 0)]}/[x#0f;linOpTermPairs y]}
 
 // Given nVars X and an objective line Y, produces the objective row of the
 // initial tableau.
 parseObjective:{1f,(1-2*"max"~(" "\:y))*parseFx[x;" "/:3_(" "\:y)],0f}
 
-// Given nVars X, a constraint line Y and the next available slack variable
-// index Z, produces a constraint row of the initial tableau.
-parseConstraint:{
-  r:0f,parseFx[x;" "/:-2_ws],"F"$last ws:" "\:y;
-  @[r;z;:;"f"$*:-1+&">=<"=**-2#ws]}
+// Given nVars X and constraint line Y produces a constraint row of the
+// initial tableau.
+parseConstraint:{0f,parseFx[x;" "/:-2_ws],"F"$last ws:" "\:y}
 
-// Given a list of strings representing an LP formulation, creates an
-// initial simplex tableau, including slack variables.
-parseLP:{
-  n:nLPVars x;
-  r:("I"$last ("="\:last[x]))_1+!n;
+// Given a list of strings representing an LP formulation X, creates an
+// intermediate result representing the initial tableau with no auxilliary
+// variables - no slacks, no artificials.
+parseLPNoAux:{
+  n:"J"$last@"="\:last txt;
   Z:parseObjective[n;x 0];
   constraintLines:(-1)_2_x;
-  constraints:parseConstraint[n;;]'[constraintLines;r];
+  constraints:parseConstraint[n;]'[constraintLines];
   (,Z),constraints}
 
-// Given an initial simplex tableau as produced by parseLP, finds and
+// Given LP formulation text X, produces a list of symbols representing the
+// constraint operators for each constraint, top to bottom: `lt`eq`gt.
+constraintOps:{(("<=";,"=";">=")!(`lt`eq`gt))@*:'-2#/:" "\:'-1_2_x}
+
+// lt constraint => Add slack
+// eq constraint => Add artificial
+// gt constraint => Add slack and artificial
+// For each (row;constraintOp) pair, add the variables to the row, and add
+// any artificial variables also to a new objective row, which replaces the
+// original objective. Also add 0s for every other row in those positions.
+
+// Given an incomplete tableau T, completes the Ith constraint row (1-based)
+// by adding the appropriate auxilliary variables, determined by function F.
+// F creates appropriate columns of the tableau, which are inserted before the
+// RHS, as you'd expect. F takes the number of columns as x, and the row being
+// worked on as y.
+// The artificial variable will be basic in the initial auxilliary
+// tableau, so it should not appear in the objective row, hence we need also to
+// subtract the Ith row from the objective row if an artificial variable is
+// added.
+addAuxs:{[f;t;i]
+  t:(-1_/:t),'f[#t;i],'last't;
+  if[1f~t[0;-2+#*t];t[0]-:t i];
+  A:1f,1_-:t 0;
+  (,A),1_t}
+
+// For an eq constraint
+addEqAuxs:addAuxs[{@[x#0f;0,y;:;1f]};;]
+// For an lt constraint
+addLtAuxs:addAuxs[{@[x#0f;y;:;1f]};;]
+// For an gt constraint
+addGtAuxs:addAuxs[{@[x#0f;y;:;-1f],'@[x#0f;0,y;:;1f]};;]
+
+// A function used for the fold
+auxApply:{[vals;f;i]f[vals;i]}
+
+// Given a tableau X, replaces the current objective row with an empty row
+// containing a 1 as the first, and all the rest 0s.
+prepAuxilliaryObjective:{(,(1f,(-1+#x)#0f)),1_x}
+
+parseLP:{
+  cons:constraintOps x;
+  vals:parseLPNoAux x;
+  fs:(`lt`eq`gt!(addLtAuxs;addEqAuxs;addGtAuxs))@cons
+  is:1+!#cons;
+  auxApply/[prepAuxilliaryObjective vals;fs;is]}
+
+// Given an initial simplex tableau as produced by parseLP X, finds and
 // returns an initial index set, if one exists. If it doesn't, it throws
 // 'bfs to signal that this is not a basic feasible solution.
 getInitialIndexSet:{
