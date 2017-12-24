@@ -190,32 +190,33 @@ reindexSet:{[p1I;avs]
   @[p1I;!idxAdjustments;-;.:idxAdjustments]}
 
 
-// Given a tableau t, its index set I and an index for a basic variable,
-// normalises that basic row's pivot element to be 1 by multiplying the
-// entire row by its reciprocal.
-normalisePivotRow:{[t;I;i](t@i)**:%:pr@&:~:0=pr:1_t@\:I@i-1}
-amendNormalisedPivotRow:{[t;I;i]@[t;i;:;normalisePivotRow[t;I;i]]}
-
 // Given a tableau and its index set, amends the tableau such that all of the
-// basic rows have normalised pivot elements.
-normalisePivotRows:{[t;I]amendNormalisedPivotRow/[unpivoted;(#I)#,I;1+!#I]}
+// basic rows have pivot elements of 1f.
+normalisePivotRows:{[t;I]
+  amendNormalisedPivotRow:{[t;I;i]
+    normalisePivotRow:{[t;I;i](t@i)**:%:pr@&:~:0=pr:1_t@\:I@i-1};
+    @[t;i;:;normalisePivotRow[t;I;i]]};
+  amendNormalisedPivotRow/[t;(#I)#,I;1+!#I]}
 
-// Given a tableau T and index set I, edits T to ensure that it has a basic
-// representation for the objective function, by 'repivoting' on the basic
-// variables.
-repivot:{[t;I]}
+// Given a normalised tableau T and index set I, edits T to ensure that it
+// has a basic representation for the objective function, by 'repivoting' on
+// each basic rows pivot element.
+repivot:{[t;I]
+  repivotColumn:{[t;I;i]$[0f=t[0;I@i];t;@[t;0;-;t[0;I@i]*t i+1]]};
+  repivotColumn/[t;(#I)#,I;!#I]}
 
-// Given an LP formulation lp as a list of strings, and the simplex iterations table
-// from the solution to phase-one, this function builds a phase-one tableau and
-// solves it. From the optimal tableau of the auxilliary problem, this function
-// returns the initial tableau for the original LP, by deleting the artificial
-// variables, replacing the original objective function and building a basic
-// representation for it.
+// Given an LP formulation lp as a list of strings, and the last (optimal)
+// entry from the simplex iterations table after running the simplex algorithm
+// for phase-one:
+// This function returns a starting point for phase-two in the form of a
+// dictionary with key `tableau`indexSet.
 prepPhaseTwo:{[lp;p1Table]
   p1:parsePhaseOne lp;
   optimalT:(optimalP1:last p1Table)`t;
-  avs:artificialVariables x;
-  nonArtificialTableau:1_(optimalT)@\:.q.except[!#*optimalT;avs];
-  Z:parseObjective[-2+#*nonArtificialTableau;x 0];
+  avs:artificialVariables lp;
+  nonArtificialTableau:1_optimalT@\:.q.except[!#*optimalT;avs];
+  Z:parseObjective[-2+#*nonArtificialTableau;lp 0];
   I:reindexSet[optimalP1`I;avs];
-  repivot[(,Z),nonArtificialTableau;I]}
+  unnormalised:(,Z),nonArtificialTableau;
+  normalised:normalisePivotRows[unnormalised;I];
+  `tableau`indexSet!(repivot[normalised;I];I)}
