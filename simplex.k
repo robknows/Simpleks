@@ -164,6 +164,17 @@ blandsSimplex:simplex[blandsPivot;;]
 // necessarily distinct.
 shadowPrices:{[optimalT](-1)_1_optimalT 0}
 
+\l parser.k
+
+// Solves a two-phase problem from an LP formulation as a list of strings.
+twoPhaseSimplex:{[lp]
+  p1:parsePhaseOne lp;
+  p1Table:stdSimplex[p1;getInitialIndexSet p1];
+  p2D:prepPhaseTwo[lp;p1Table];
+  p1Iterations:max p1Table`iter;
+  p2Table:stdSimplex[p2D`tableau;p2D`indexSet];
+  p1Table,![p2Table;();0b;(,`iter)!,(+;`iter;p1Iterations)]}
+
 // Example 1: short
 A1:3 6#1 200 400 0 0 0 0 3 2 120 0 120 0 1 1 0 50 50f
 I1:3 4
