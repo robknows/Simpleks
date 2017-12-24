@@ -186,7 +186,7 @@ gtArtificials:{`cnt`avs!(x+2;y,x+1)}
 // gt => +1 slack, +1 artificial
 artificialVariables:{
   nLpVars:{"J"$last@"="\:last x};  
-  accAvs:{[d;constraint]((`lt`eq`gt!(ltArtificials;eqArtificials;gtArtificials))@constraint)[d`cnt;d`avs]};
+  accAvs:{[d;constraint](`lt`eq`gt!(ltArtificials;eqArtificials;gtArtificials))[constraint;d`cnt;d`avs]};
   (accAvs/[`cnt`avs!(1+nLpVars x;());constraintOps x])`avs}
 
 // Given an optimal basis from the completion of phase-one and a list of the
