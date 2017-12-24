@@ -189,6 +189,17 @@ reindexSet:{[p1I;avs]
   idxAdjustments:#:'=:,/&:'p1I>/:avs;
   @[p1I;!idxAdjustments;-;.:idxAdjustments]}
 
+
+// Given a tableau t, its index set I and an index for a basic variable,
+// normalises that basic row's pivot element to be 1 by multiplying the
+// entire row by its reciprocal.
+normalisePivotRow:{[t;I;i](t@i)**:%:pr@&:~:0=pr:1_t@\:I@i-1}
+amendNormalisedPivotRow:{[t;I;i]@[t;i;:;normalisePivotRow[t;I;i]]}
+
+// Given a tableau and its index set, amends the tableau such that all of the
+// basic rows have normalised pivot elements.
+normalisePivotRows:{[t;I]amendNormalisedPivotRow/[unpivoted;(#I)#,I;1+!#I]}
+
 // Given a tableau T and index set I, edits T to ensure that it has a basic
 // representation for the objective function, by 'repivoting' on the basic
 // variables.
