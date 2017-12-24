@@ -102,14 +102,14 @@ isUnbounded:{[t;I]
 // data from every iteration into a table, which it then returns.
 simplex:{[choosePivot;t;I]
   i:1;
-  running:1b;
+  running:~:isOptimal[t;I]|isUnbounded[t;i];
   iterations:+`iter`opt`unb`t`I`BFS!6#();
   iterations,:`iter`opt`unb`t`I`BFS!(i;isOptimal[t;I];isUnbounded[t;I];t;I;basicSoln[t;I]);
   while[running;
     pvt:choosePivot[t;I];
     t:pivot[t;I;pvt];
     I:reindex[I;pvt];
-    iterations,:`iter`opt`unb`t`I`BFS!(i;isOptimal[t;I];isUnbounded[t;I];t;I;basicSoln[t;I]);
+    iterations,:`iter`opt`unb`t`I`BFS!(i+1;isOptimal[t;I];isUnbounded[t;I];t;I;basicSoln[t;I]);
     running:0=+/max'iterations`opt`unb;
     i+:1];
   iterations}
@@ -173,7 +173,7 @@ twoPhaseSimplex:{[lp]
   p2D:prepPhaseTwo[lp;p1Table];
   p1Iterations:max p1Table`iter;
   p2Table:stdSimplex[p2D`tableau;p2D`indexSet];
-  p1Table,![p2Table;();0b;(,`iter)!,(+;`iter;p1Iterations)]}
+  ![p1Table;();0b;(,`opt)!,0b],![p2Table;();0b;(,`iter)!,(+;`iter;p1Iterations)]}
 
 // Example 1: short
 A1:3 6#1 200 400 0 0 0 0 3 2 120 0 120 0 1 1 0 50 50f
